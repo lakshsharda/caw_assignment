@@ -8,7 +8,6 @@ def test_health_check():
     assert True
 
 
-def test_intentional_fail():
-    """This test is intentionally written to fail."""
-    # This will fail when we run the pipeline
-    assert 1 + 1 == 3, "Math works (intentional fail for pipeline demo)"
+def test_math():
+    """Test basic math operations."""
+    assert 1 + 1 == 2, "Basic math should work"
