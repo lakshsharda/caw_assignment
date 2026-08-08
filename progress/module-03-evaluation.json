@@ -1,0 +1,56 @@
+{
+  "module_number": 3,
+  "narrative": "Student successfully implemented a three-bug fix cycle: identified and corrected an implicit APP_ENV default that broke fail-fast validation, fixed a mismatched healthcheck endpoint that would cause orchestrator failures, and made the Dockerfile respect PORT environment variables via shell expansion. All fixes were verified with real Docker builds and integration tests. The student demonstrated strong debugging methodology by testing precedence directly (env vars vs .env), examining error messages closely, and verifying each fix end-to-end before committing.",
+  "dimensions": [
+    {
+      "key": "containerization_quality",
+      "score": 4,
+      "observation": "Student fixed two critical Dockerfile bugs (healthcheck endpoint mismatch and hardcoded PORT) and verified them work correctly. The CMD was updated from simple JSON array to shell-based syntax to support environment variable expansion. However, no proactive hardening like non-root user verification or layer optimization was added.",
+      "evidence": "Changed HEALTHCHECK CMD from /live (non-existent) to /health (correct endpoint). Changed CMD from [\"uvicorn\", ..., \"--port\", \"8000\"] to [\"sh\", \"-c\", \"uvicorn ... --port ${PORT:-8000}\"] to support environment override. Docker build succeeded and image runs correctly with PORT=9001."
+    },
+    {
+      "key": "pipeline_design",
+      "score": 3,
+      "observation": "Student pushed fixes to GitHub and confirmed they were merged. However, no evidence of re-running the CI/CD pipeline after the fixes or verifying that the GitHub Actions workflow executes cleanly with the updated code. The fixes address configuration issues but didn't exercise the full deployment pipeline verification.",
+      "evidence": "Committed 3 files and pushed to GitHub (commit 6dce894). No CI/CD re-run verification shown."
+    },
+    {
+      "key": "observability_coverage",
+      "score": 2,
+      "observation": "The /health endpoint returns environment info, which is good for diagnostics. However, no structured logging of startup events (which environment we're running in, validation results). No metrics or alerting. Errors are logged but only at runtime; startup validation failures don't produce debug logs.",
+      "evidence": "Health endpoint includes environment: {\"ok\": True, \"port\": settings.port, \"environment\": settings.app_env.value}. But app startup (lifespan handler) logs environment only at INFO level with extra={}, not structured."
+    },
+    {
+      "key": "failure_thinking",
+      "score": 4,
+      "observation": "Student proactively tested both success and failure paths: verified APP_ENV crashes when missing, verified service starts cleanly when set, tested environment precedence with .env vs -e flags, and tested PORT override. Debugged the app_env AttributeError methodically by checking if env vars were set in the container. Did not wait for hints.",
+      "evidence": "Test sequence: Created temporary .env without APP_ENV to force failure → Settings crashed with 'Field required'. Then tested success path with all vars set → 'App started: environment=development, port=8000'. Tested PORT=9001 override → correctly detected. Tested precedence by running with OS env override."
+    },
+    {
+      "key": "degradation_design",
+      "score": 2,
+      "observation": "The system now fails fast on misconfiguration (good), but there's no graceful degradation strategy. If DATABASE_URL is unreachable, the service will crash immediately. If healthcheck fails 3 times, Docker marks it unhealthy. No circuit breaker, timeout extension, or retry logic for database connection attempts.",
+      "evidence": "Validation crashes immediately: 'RuntimeError: Invalid configuration: ...' with no retry or fallback. Module 3 focuses on startup validation; Module 4+ will add observability that would enable degradation patterns."
+    },
+    {
+      "key": "documentation_quality",
+      "score": 4,
+      "observation": "Student significantly improved .env.example with detailed comments explaining each variable, security implications (why APP_ENV misconfiguration is dangerous), and examples for different environments (local, staging, production). Added inline warnings about secrets. This would help an on-call engineer understand what each var does and what happens if it's wrong. However, no runbook for production troubleshooting yet.",
+      "evidence": ".env.example expanded from 9 lines to 55 lines with detailed comments per variable: \"In production: error responses are generic (to prevent information leakage)\", \"NEVER commit real production credentials\", \"SECURITY: This example value is for development only.\", \"Generate new secret: python -c ...\""
+    }
+  ],
+  "strengths": [
+    "Debugging methodology: Student methodically tested precedence (OS env > Docker -e > .env), didn't assume — verified. Evidence: 'docker run --rm -e DATABASE_URL=... created Settings with docker value, not .env value.'",
+    "Fail-fast thinking: Made APP_ENV explicitly required so production misconfigurations crash at startup with clear error, not silently default to development mode. Evidence: 'Field required [type=missing]' error when APP_ENV missing.",
+    "End-to-end verification: Didn't just fix code — rebuilt Docker, tested PORT override, confirmed health endpoint, ran integration tests. Evidence: All 3 bugs verified with real Docker containers and test output.",
+    "Security awareness: Connected configuration errors to information disclosure risk. Added detailed security warnings to .env.example about stack trace exposure. Evidence: 'Misconfiguring this in production can expose internal details like SQL queries, database schema, and application file paths to end users.'"
+  ],
+  "growth_areas": [
+    "CI/CD verification: Fixed code and pushed to GitHub, but didn't verify the CI/CD pipeline re-runs or that tests pass on the remote. Next module should include checking GitHub Actions results after each commit.",
+    "Structured logging: Startup logs don't use structured logging with environment context. Added environment to /health response but not to startup logs. Future: log(environment=app_env, port=port) on startup for operational visibility.",
+    "Resilience: No graceful degradation strategy if database is unreachable or healthcheck fails. Immediate crash is correct for this module, but Module 4+ should explore retry logic and timeout tuning."
+  ],
+  "recommendation": "In Module 4, set up structured logging from the start so every startup includes environment context, secrets redaction, and request tracing. This will make the configuration system visible and debuggable in production.",
+  "hints_used": 0,
+  "phase": "MENTOR"
+}
