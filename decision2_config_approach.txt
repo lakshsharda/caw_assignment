@@ -1,0 +1,30 @@
+Decision 2: Configuration Approach
+
+CHOICE: A (Single config module with environment variable overrides)
+
+REASONING:
+A single, unified config module with environment variable overrides is the right approach for this service.
+
+Why Option A:
+1. **Maintainability**: When adding a new config value, update one place (config.py), not three files
+2. **Junior-friendly**: Single source of truth is easier to understand and modify
+3. **DRY principle**: Avoids duplication and drift between environments
+4. **Version control friendly**: Code defines structure, environment variables provide values
+5. **Fail-fast design**: Service fails at startup if required config is missing (will implement this)
+
+Tradeoff managed:
+1. **Prevent default leakage**: Required values (DATABASE_URL, JWT_SECRET) have NO defaults
+2. **Clear error messages**: If required config is missing, error is explicit: "DATABASE_URL must be set"
+3. **Development convenience**: Optional values like LOG_LEVEL have safe dev defaults (info)
+4. **Testing**: In tests, can easily override config via environment variables
+
+Implementation details:
+- PORT: required, no default (validates 1-65535)
+- DATABASE_URL: required, no default (validates not empty)
+- LOG_LEVEL: optional, default=info (for dev convenience)
+- JWT_SECRET: required, no default (for security)
+- API_KEY_A, API_KEY_B: required, no default (for security)
+
+This approach enforces that each environment must explicitly provide critical config, preventing the "connected to wrong database" mistake.
+
+Decision recorded: 2026-08-08
