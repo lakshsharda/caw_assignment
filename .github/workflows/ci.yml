@@ -42,12 +42,10 @@ jobs:
       # Chunk 1: Lint step
       - name: Run linter (ruff)
         run: pip install ruff && ruff check .
-        continue-on-error: true  # Don't fail pipeline on lint warnings for now
 
       # Chunk 1: Test step
       - name: Run tests
         run: pip install pytest && pytest
-        continue-on-error: true  # Tests may not exist yet
 
   build-and-push:
     name: Build and Push Docker Image
