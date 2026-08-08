@@ -1,0 +1,23 @@
+{
+  "summary": "Built the Module 2 FastAPI persistence layer with PostgreSQL, applied the initial Alembic migration, and proved query-by-code works through both a seed/query script and the HTTP API.",
+  "evidence": [
+    "Kept the minimum domain model in SQLAlchemy: Link(id, code, long_url, created_by, created_at) and ClickEvent(id, link_id, clicked_at, user_agent, referrer, ip_hash).",
+    "Planned indexes to match query patterns: unique index on Link.code for redirect lookup, index on Link.created_by for owner-based listing, and compound index on ClickEvent(link_id, clicked_at) for time-based analytics.",
+    "Added a DB layer in api/app/db.py that reads DATABASE_URL from env and verifies the database connection at startup with SELECT 1.",
+    "Started Postgres in Docker and used host port 55432 to avoid a conflicting local listener on 5432.",
+    "Configured Alembic to use the app metadata and DATABASE_URL, generated the initial migration, and applied it successfully with alembic upgrade head.",
+    "Created api/scripts/module-02-seed-query.py and saved exact output to progress/evidence/module-02/query-by-code.txt.",
+    "Query-by-code proof file output: inserted code abc123, selected code abc123, matched long_url https://example.com.",
+    "Restarted the FastAPI app against Postgres and verified GET /links/abc123 returned HTTP 200 with the seeded row, while GET /links/missing123 returned HTTP 404 with Link not found."
+  ],
+  "artifacts": [
+    "api/app/db.py",
+    "api/app/models.py",
+    "api/app/schemas.py",
+    "api/scripts/module-02-seed-query.py",
+    "api/alembic.ini",
+    "api/alembic/env.py",
+    "api/alembic/versions/fce59a06c84a_init.py",
+    "progress/evidence/module-02/query-by-code.txt"
+  ]
+}

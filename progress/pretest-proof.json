@@ -1,0 +1,18 @@
+{
+  "summary": "Completed Module 1 pretest and setup check for System Design Fundamentals.",
+  "evidence": [
+    "Workspace setup check: Windows PowerShell environment with Node v22.17.1, npm 10.9.2, Python 3.11.9, Git 2.50.1, Docker 29.1.3, Docker Compose v5.0.1, and curl 8.21.0 installed; pnpm missing.",
+    "Workspace state: current folder only contains meta files and no starter app yet, so state is workspace created, app not detected yet.",
+    "Self-rating: strong.",
+    "Health vs readiness: health means the process is alive and may need restart if not; readiness means the service can safely take traffic and should be removed from the load balancer if dependencies are not ready.",
+    "Public redirect misuse: open redirect/phishing by hiding a malicious destination behind a trusted short domain.",
+    "First checks for a 500: application logs/stack trace first, then immediate dependencies such as database, cache, or external APIs.",
+    "Idempotency: repeating the same background job should have the same safe result so retries do not cause duplicate side effects like double charges or duplicate emails.",
+    "Database index explanation: indexes speed reads by avoiding full table scans, but writes slow down because the index must also be updated.",
+    "Testing preference: integration-heavy, because URL shortener risk is mostly in routing, database, redirect, and caching interactions.",
+    "Environment preference: Windows PowerShell is comfortable."
+  ],
+  "artifacts": [
+    "progress/pretest-proof.json"
+  ]
+}

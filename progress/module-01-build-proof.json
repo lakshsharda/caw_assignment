@@ -1,0 +1,23 @@
+{
+  "summary": "Built the minimal FastAPI Module 1 service in a single-app layout with centralized environment validation and a working health endpoint.",
+  "evidence": [
+    "Created API_ROOT at api/ for the single-app layout.",
+    "Added api/.env.example with placeholders for PORT, DATABASE_URL, MONGODB_URI, REDIS_URL, JWT_SECRET, API_KEY_A, and API_KEY_B.",
+    "Added api/.env for local execution and kept it out of git via api/.gitignore.",
+    "Created api/app/config.py to load settings from .env and fail fast when PORT is missing, non-numeric, or outside 1..65535.",
+    "Created api/app/main.py with a FastAPI app and GET /health returning {\"ok\": true, \"port\": 8000}.",
+    "Created a local virtual environment in api/.venv and installed FastAPI, uvicorn, pydantic-settings, and python-dotenv.",
+    "Verified the healthy startup path with curl.exe http://127.0.0.1:8000/health returning {\"ok\":true,\"port\":8000}.",
+    "Ran the required failure-first drill with PORT=abc and confirmed startup failed before serving traffic with the message Invalid PORT. Set PORT in .env to an integer between 1 and 65535.",
+    "Ran the required boundary-value drill with PORT=70000 and confirmed startup failed before serving traffic with the same clear invalid PORT message.",
+    "Restored PORT=8000, restarted the app, and re-verified GET /health returned {\"ok\":true,\"port\":8000}."
+  ],
+  "artifacts": [
+    "api/.env.example",
+    "api/.env",
+    "api/.gitignore",
+    "api/requirements.txt",
+    "api/app/config.py",
+    "api/app/main.py"
+  ]
+}

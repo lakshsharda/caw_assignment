@@ -1,0 +1,23 @@
+{
+  "bootcamp": {
+    "product_scenario": "public_consumer",
+    "module_01": {
+      "step": "complete"
+    },
+    "module_02": {
+      "step": "complete"
+    },
+    "next_module": {
+      "number": 3,
+      "step": "context"
+    }
+  },
+  "decisions": {
+    "module_01": {
+      "project_layout": "single_app"
+    },
+    "module_02": {
+      "database": "postgres"
+    }
+  }
+}

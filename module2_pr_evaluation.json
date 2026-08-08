@@ -1,0 +1,126 @@
+{
+  "events": [
+    {
+      "module": 2,
+      "step": "reflect",
+      "event_type": "module_evaluation",
+      "data": {
+        "narrative": "Student completed Module 2 CI/CD Pipeline: designed GitHub Actions workflow with sequential stages (lint-test → build → push), implemented security controls (no hardcoded secrets, branch filtering), and added operational hardening (dependency caching, 15-min timeout, image size guardrail). Proactively identified and prevented all three BREAK scenarios (secret exposure, cache poisoning, unintended deployments) through correct design patterns. Demonstrated understanding of pipeline safety and traceability.",
+        "overall": 4,
+        "dimension_scores": [
+          {
+            "key": "containerization_quality",
+            "score": 4,
+            "observation": "Student leveraged Module 1 Dockerfile in CI/CD pipeline, configured Docker Buildx for efficient builds, and implemented image size validation (200MB threshold).",
+            "evidence": "Pipeline uses Dockerfile from Module 1, docker/build-push-action@v5 for multi-stage builds, docker image inspect to check size with explicit fail-if-exceeds-200MB logic."
+          },
+          {
+            "key": "pipeline_design",
+            "score": 4,
+            "observation": "Student designed production-ready pipeline with proper stage separation, dependency gating, secret management, and branch filtering. Sequential shape chosen appropriately for project scale.",
+            "evidence": "Two explicit jobs with needs: keyword (lint-and-test independent, build-and-push depends on it), if: github.ref == 'refs/heads/main' blocks non-main pushes, uses GitHub secrets not hardcoded credentials."
+          },
+          {
+            "key": "observability_coverage",
+            "score": 3,
+            "observation": "Pipeline includes basic visibility: logs image details on success, 15-min timeout prevents hangs, step names clearly indicate purpose. Deeper observability (metrics, alerts) deferred to Module 4.",
+            "evidence": "Step logs image registry/tag/SHA for confirmation, timeout-minutes: 15 prevents resource waste, clear step naming (Lint and Test, Build, Push)."
+          },
+          {
+            "key": "failure_thinking",
+            "score": 4,
+            "observation": "Student anticipated three specific failure modes (secret leaks, cache breaks, unintended deployments) and built prevention into design rather than recovering after. Failure-First Drill scenarios understood.",
+            "evidence": "Pipeline prevents secret exposure (no hardcoded tokens), cache poisoning (cache: pip with requirements.txt key), and unintended deployments (if: condition). Identified all three BREAK scenarios independently."
+          },
+          {
+            "key": "degradation_design",
+            "score": 2,
+            "observation": "Degradation design not yet in scope; pipeline assumes success path. Circuit breakers and graceful fallback patterns defer to Modules 5-6.",
+            "evidence": "Pipeline has no fallback paths (no retry logic, no partial success handling). Scope is binary: pass or fail each stage. Appropriate for CI stage; production resilience covered later."
+          },
+          {
+            "key": "documentation_quality",
+            "score": 4,
+            "observation": "Student created detailed MODULE2_CI_CD_PIPELINE.md with workflow structure, testing scenarios, tagging strategy, and known limitations. On-call engineer could follow pipeline flow.",
+            "evidence": "Documentation includes: four chunks structure, job dependencies, secret management approach, image tagging strategy, failure scenarios (lint break, test break, size breach), registry path, and next steps."
+          }
+        ],
+        "strengths": [
+          "Proactive security: designed pipeline with secret protection from start (no hardcoded credentials, uses GitHub token masking). Did not need hints on this critical issue.",
+          "Pipeline discipline: understood stage separation principle; gated build on test success via needs: keyword. Recognizes that broken tests must stop downstream.",
+          "Branch safety: implemented if: condition to prevent feature branches from polluting registry. Understood deployment safety as first-class concern.",
+          "Performance awareness: configured dependency caching (cache: pip with requirements.txt key), understood that slow pipelines encourage risky batched commits.",
+          "Traceability thinking: chose git SHA tagging over latest tag; explained: 'tells you exactly which commit built this image' for production debugging."
+        ],
+        "growth_areas": [],
+        "recommendation": "In Module 3 (Environment Management), extend this CI/CD pipeline to deploy to different environments (dev/staging/prod) with environment-specific configs (.env files, database connections). This connects pipeline-built images to actual running services. Also plan to add pre-commit hooks to catch lint/test issues before pushing to main, creating a fast feedback loop at developer's machine before CI runs.",
+        "public_evidence": [
+          {
+            "artifact": ".github/workflows/ci.yml",
+            "student_action": "Designed and implemented production-ready GitHub Actions CI/CD pipeline with four integrated chunks: lint-test, docker-build, image-size-check, registry-push.",
+            "technical_detail": "Two jobs: lint-and-test (independent, sequential stages), build-and-push (depends on lint-and-test, gated on main branch). Uses docker/build-push-action, dependency caching, GitHub secrets, image size validation.",
+            "proof": ".github/workflows/ci.yml (110+ lines) with proper YAML structure, job dependencies via needs:, secret masking, if: branch condition, timeout: 15min, cache: pip configuration.",
+            "ability": "Designs CI/CD pipelines with security, performance, and safety hardening as first-class concerns, not afterthoughts.",
+            "reviewer_value": "Shows mastery of pipeline anti-patterns (secret leaks, cache misses, unintended deployments) and how to prevent them. Demonstrates that CI/CD is about automation + discipline, not just orchestration.",
+            "confidence": "demonstrated"
+          },
+          {
+            "artifact": "MODULE2_CI_CD_PIPELINE.md",
+            "student_action": "Created comprehensive pipeline documentation with workflow structure, design decisions, testing scenarios, and operational guidance.",
+            "technical_detail": "Documents: trigger config (push to main + PRs), job structure (lint-test independent, build-push dependent), secret management (GitHub token), tagging strategy (SHA immutable + latest mutable), concurrency handling, performance analysis.",
+            "proof": "Documentation includes: pipeline structure breakdown, failure scenarios with expected outcomes, image tagging rationale, registry path, known limitation (Docker daemon verification deferred).",
+            "ability": "Communicates pipeline design clearly enough that on-call engineers can understand flow, debug failures, and maintain the system.",
+            "reviewer_value": "Shows that pipeline thinking extends beyond writing the YAML—includes operational documentation, failure scenarios, and team communication.",
+            "confidence": "demonstrated"
+          }
+        ],
+        "student_knowledge": {
+          "terminology_gaps": [],
+          "concepts_demonstrated": [
+            {
+              "concept": "CI vs CD distinction",
+              "evidence": "Explained: 'CI is quality check (lint/test run automatically), CD is conveyor belt (push image to registry)' - separated concerns correctly."
+            },
+            {
+              "concept": "Stage separation and gating",
+              "evidence": "Used needs: keyword to gate build on test success; explained: 'if test fails, build doesn't run' - demonstrates pipeline as series of gates."
+            },
+            {
+              "concept": "Secret management",
+              "evidence": "Used GitHub secrets (GITHUB_TOKEN) instead of hardcoded credentials; understood: 'git history is permanent, secret leaks are impossible to fully revoke.'"
+            },
+            {
+              "concept": "Git SHA traceability",
+              "evidence": "Tagged images with github.sha instead of latest; explained: 'tells you exactly which commit built this image' for production debugging."
+            },
+            {
+              "concept": "Dependency caching strategy",
+              "evidence": "Configured cache: pip with requirements.txt as key; understood: 'cache miss if lockfile changes, but reuse on subsequent runs.'"
+            }
+          ],
+          "teaching_approaches": [
+            {
+              "concept": "Pipeline safety and secrets",
+              "approach": "example",
+              "detail": "BREAK scenario with hardcoded secret echoed to logs made secret management tangible. Student proactively prevented it.",
+              "effective": true
+            },
+            {
+              "concept": "Stage gating",
+              "approach": "example",
+              "detail": "Failure-First Drill (break a test, watch pipeline stop before build) made gating logic concrete.",
+              "effective": true
+            }
+          ],
+          "effective_level": "intermediate",
+          "learning_style_signals": [
+            "Learns well from anti-patterns and failure modes (BREAK scenario recognition)",
+            "Connects previous learning to new module (Dockerfile from Module 1 integrated into pipeline)",
+            "Reasons about business impact (pipeline speed → batch size → risk trade-off)"
+          ],
+          "confidence_level": "medium"
+        }
+      }
+    }
+  ]
+}

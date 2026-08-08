@@ -1,0 +1,123 @@
+{
+  "events": [
+    {
+      "module": 1,
+      "step": "reflect",
+      "event_type": "module_evaluation",
+      "data": {
+        "narrative": "Student completed Module 1 containerization: chose Debian Slim base image for psycopg2 compatibility, designed multi-stage Dockerfile with layer cache optimization, implemented security hardening (non-root user, HEALTHCHECK). Diagnosed and fixed BREAK bug: identified cache-busting caused by COPY order (moved requirements before app code). Demonstrated understanding of reproducibility problem containers solve.",
+        "overall": 4,
+        "dimension_scores": [
+          {
+            "key": "containerization_quality",
+            "score": 4,
+            "observation": "Student created production-appropriate Dockerfile with multi-stage build, layer caching strategy, and security hardening.",
+            "evidence": "Dockerfile uses FROM...AS builder pattern, copies requirements before RUN pip install (cache optimization), non-root USER appuser, HEALTHCHECK with /live endpoint, .dockerignore to exclude .git/__pycache__/.env."
+          },
+          {
+            "key": "pipeline_design",
+            "score": 3,
+            "observation": "Student understands containerization as first step of pipeline; pipeline design (CI/CD automation) deferred to Module 2.",
+            "evidence": "Student stated: 'we build this image manually on our laptop. There is no automated pipeline to build, test, and deploy it. That is Module 02.' Shows awareness of deployment pipeline scope."
+          },
+          {
+            "key": "observability_coverage",
+            "score": 3,
+            "observation": "Student implemented HEALTHCHECK endpoint; deeper observability (logging, metrics, alerts) not yet in scope.",
+            "evidence": "Dockerfile includes: HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -f http://localhost:8000/live. Health probe is observability foundation."
+          },
+          {
+            "key": "failure_thinking",
+            "score": 3,
+            "observation": "Student anticipated build-time failure (BREAK bug on cache invalidation) and source-level failure (missing environment consistency); runtime failures not yet explored.",
+            "evidence": "Debugged COPY order bug: 'COPY . . after pip install invalidates cache on source changes—expensive rebuild.' Explained Python 3.8 vs 3.11 reproducibility risk."
+          },
+          {
+            "key": "degradation_design",
+            "score": 2,
+            "observation": "Degradation design not yet covered in Module 1; student understands graceful degradation concept but not yet implemented circuit breakers or fallback logic.",
+            "evidence": "Student defined graceful degradation accurately in PRETEST but no degradation implemented in Dockerfile. Scope for Modules 5-6."
+          },
+          {
+            "key": "documentation_quality",
+            "score": 3,
+            "observation": "Dockerfile includes inline comments explaining layer purpose and security decisions; runbook documentation deferred to Module 7.",
+            "evidence": "Comments: '# Copy requirements FIRST (changes to requirements.txt invalidate cache)', '# Copy only necessary files from builder (venv + app code)', '# Create a non-root user for security'."
+          }
+        ],
+        "strengths": [
+          "Strong decision-making: chose Debian Slim over Alpine with clear reasoning (psycopg2 glibc compatibility > image size trade-off for single daily deploy).",
+          "Rapid debugging: identified BREAK bug independently—understood layer cache principle well enough to see COPY order was wrong.",
+          "Security awareness: implemented all hardening controls (non-root user, .dockerignore, HEALTHCHECK) without prompting."
+        ],
+        "growth_areas": [
+          "Degradation design not yet practiced; will deepen in Modules 5-6 when introducing circuit breakers and fallback patterns.",
+          "Pipeline design scope limited to single image build; CI/CD automation and deployment safety covered in Module 2."
+        ],
+        "recommendation": "In Module 2, extend this containerized service into a CI/CD pipeline: automate image builds on git push, run tests before image creation, and implement deployment gates (staging before production). This connects 'container works locally' to 'container deploys safely everywhere.'",
+        "public_evidence": [
+          {
+            "artifact": "api/Dockerfile",
+            "student_action": "Designed and implemented multi-stage Dockerfile with layer cache optimization and security hardening for URL shortener service.",
+            "technical_detail": "Multi-stage build: Stage 1 (builder) copies requirements first, runs pip install, then copies app code; Stage 2 (runtime) copies only venv + app from builder, runs as non-root user appuser. HEALTHCHECK probes /live endpoint.",
+            "proof": "api/Dockerfile (39 lines): FROM python:3.12-slim AS builder, COPY requirements.txt, RUN pip install, COPY app/alembic/scripts, FROM python:3.12-slim, COPY --from=builder, RUN groupadd -r appgroup && useradd -r, USER appuser, HEALTHCHECK.",
+            "ability": "Designs containerized applications with layer caching strategy, security hardening, and health observability.",
+            "reviewer_value": "Shows mastery of Dockerfile optimization (copy order, multi-stage), security (non-root user, .dockerignore), and operational readiness (HEALTHCHECK). Demonstrates production thinking: reproducibility, attack surface minimization, deployment safety.",
+            "confidence": "demonstrated"
+          },
+          {
+            "artifact": "api/.dockerignore",
+            "student_action": "Created .dockerignore to exclude unnecessary/sensitive files from build context, reducing image size and preventing secret leaks.",
+            "technical_detail": "Excludes: .git, .env, __pycache__, *.pyc, .pytest_cache, tests/, *.md files (vs build-time only).",
+            "proof": "api/.dockerignore (20 lines): .git, .env, .env.*, __pycache__, *.pyc, tests/, *.test.js, etc.",
+            "ability": "Understands build context impact on image size, deployment speed, and security; implements file exclusion discipline.",
+            "reviewer_value": "Shows attention to operational details that prevent bloated images and accidental secret exposure in production artifacts.",
+            "confidence": "demonstrated"
+          }
+        ],
+        "student_knowledge": {
+          "terminology_gaps": [],
+          "concepts_demonstrated": [
+            {
+              "concept": "Docker layer caching",
+              "evidence": "Correctly explained: COPY requirements.txt first, RUN pip install (cached if requirements unchanged), THEN COPY app code (source changes don't invalidate install layer). Identified and fixed BREAK bug using this principle."
+            },
+            {
+              "concept": "Multi-stage Docker builds",
+              "evidence": "Implemented builder stage (compiles/installs) and runtime stage (runs only); explained: 'builder has compilers and dev tools, runtime has only venv + app—runtime image is 80%+ smaller with no build bloat.'"
+            },
+            {
+              "concept": "Container security",
+              "evidence": "Implemented non-root user: 'groupadd -r appgroup && useradd -r -g appgroup -s /bin/false appuser'; reasoning: 'even if container breached, attacker lands as limited user not root.'"
+            },
+            {
+              "concept": "Reproducibility via containerization",
+              "evidence": "Explained Python 3.8 vs 3.11 problem: 'Direct scp deployment means teammate needs exact OS/Python version; containers ship identical runtime everywhere, preventing surprises.'"
+            }
+          ],
+          "teaching_approaches": [
+            {
+              "concept": "Layer caching and instruction order",
+              "approach": "example",
+              "detail": "BREAK bug made caching tangible: reordering COPY operations from 'copy all then install' to 'copy requirements, install, copy code' directly showed impact on rebuild speed.",
+              "effective": true
+            },
+            {
+              "concept": "Reproducibility problem",
+              "approach": "example",
+              "detail": "Python 3.8 vs 3.11 incident from CONTEXT step resonated as concrete example of why 'works locally' fails without containerization.",
+              "effective": true
+            }
+          ],
+          "effective_level": "intermediate",
+          "learning_style_signals": [
+            "Learns well from concrete failures (BREAK bug made layer caching vivid)",
+            "Connects to prior experience (Module 3 race conditions parallel to cache invalidation timing issues)",
+            "Benefits from specific reasoning (chose Debian Slim with rationale, not just default)"
+          ],
+          "confidence_level": "medium"
+        }
+      }
+    }
+  ]
+}
