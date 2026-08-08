@@ -9,7 +9,6 @@ from app.db import get_db_session
 from app.logging_config import log_event
 from app.services.links_service import get_link_by_code
 
-
 router = APIRouter(tags=["redirect"])
 
 

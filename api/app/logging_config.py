@@ -4,7 +4,7 @@ import os
 import sys
 import uuid
 from contextvars import ContextVar
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
@@ -39,7 +39,7 @@ def sanitize_for_logging(value: Any) -> Any:
 class JsonLogFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
-            "ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace(
+            "ts": datetime.now(UTC).isoformat(timespec="milliseconds").replace(
                 "+00:00", "Z"
             ),
             "level": record.levelname.lower(),

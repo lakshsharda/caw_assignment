@@ -10,7 +10,6 @@ from app.logging_config import log_event
 from app.models import Link
 from app.schemas.link import LinkCreate
 
-
 CODE_ALPHABET = string.ascii_letters + string.digits
 CODE_LENGTH = 6
 MAX_CODE_GENERATION_ATTEMPTS = 10

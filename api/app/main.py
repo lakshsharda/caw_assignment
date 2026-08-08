@@ -5,11 +5,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.config import load_settings
-from app.db import verify_database_connection
 from app.logging_config import setup_logging
 from app.middleware.request_logging import RequestLoggingMiddleware
 from app.routers import links, redirect
-
 
 settings = load_settings()
 setup_logging()

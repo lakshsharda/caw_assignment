@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from app.config import load_settings
 
-
 settings = load_settings()
 
 engine = create_engine(settings.database_url, future=True)

@@ -1,9 +1,8 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-
 
 MAX_TAGS = 10
 MAX_TAG_LENGTH = 32
@@ -50,9 +49,9 @@ class LinkCreate(BaseModel):
 
         comparison_target = value
         if value.tzinfo is None:
-            comparison_target = value.replace(tzinfo=timezone.utc)
+            comparison_target = value.replace(tzinfo=UTC)
 
-        if comparison_target <= datetime.now(timezone.utc):
+        if comparison_target <= datetime.now(UTC):
             raise ValueError("expires_at must be in the future")
         return value
 

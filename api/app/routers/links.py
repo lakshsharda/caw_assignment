@@ -12,8 +12,12 @@ from app.schemas.link import (
     LinkRead,
     build_link_create_response,
 )
-from app.services.links_service import build_short_url, create_link, get_link_by_id, list_links
-
+from app.services.links_service import (
+    build_short_url,
+    create_link,
+    get_link_by_id,
+    list_links,
+)
 
 router = APIRouter(prefix="/links", tags=["links"])
 
