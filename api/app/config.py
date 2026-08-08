@@ -1,6 +1,6 @@
 from enum import Enum
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     # --- Application Environment ---
-    app_env: Environment
+    app_env: Environment = Field(..., description="Runtime environment: development, staging, or production. REQUIRED - must be set explicitly.")
     port: int
 
     # --- Database ---
