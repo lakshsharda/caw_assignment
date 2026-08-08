@@ -1,7 +1,5 @@
 """Basic test suite for linkops API."""
 
-import pytest
-
 
 def test_health_check():
     """Test that health check passes."""
