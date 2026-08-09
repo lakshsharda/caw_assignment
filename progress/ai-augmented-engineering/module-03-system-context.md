@@ -52,16 +52,126 @@
 - **No auth middleware yet** (will be added for team collaboration feature)
 - Middleware is added in main.py: `app.add_middleware(RequestLoggingMiddleware)`
 
-### Error Handling
-- **Global exception handlers** in main.py:
-  - `RequestValidationError` → 400 with detail list
-  - Generic `Exception` → 500 with environment-aware detail level
-- **Per-service error pattern:** Use FastAPI's `HTTPException` with status code and detail
-  - Example: `raise HTTPException(status_code=404, detail="Link not found")`
-- **Error responses:**
-  - Validation errors: 400 with `{"detail": [{"loc": [...], "msg": "...", "type": "..."}]}`
-  - Not found: 404 with `{"detail": "Link not found"}`
-  - Generic errors: 500 with `{"error": "Internal Server Error"}` (or include details in dev/staging)
+### Error Handling — CRITICAL CONVENTION
+
+**RULE: All errors MUST use FastAPI's HTTPException. NEVER return JSONResponse for errors or use custom error formats.**
+
+The global exception handlers in main.py will automatically format HTTPException into the correct response format. Your job is ONLY to raise HTTPException with the right status code and detail message.
+
+#### Error Handling Examples (Copy These Patterns Exactly)
+
+**Example 1: Not Found (404)**
+```python
+# In service function:
+def get_link_by_id(db_session: Session, link_id: int) -> Link:
+    link = db_session.get(Link, link_id)
+    if link is None:
+        raise HTTPException(status_code=404, detail="Link not found")
+    return link
+
+# Client receives:
+{
+  "detail": "Link not found"
+}
+```
+
+**Example 2: Validation Error (400)**
+```python
+# In schema (Pydantic validator):
+class LinkCreate(BaseModel):
+    long_url: str
+    
+    @field_validator("long_url")
+    @classmethod
+    def validate_long_url(cls, value: str) -> str:
+        if not value or not value.startswith(("http://", "https://")):
+            raise ValueError("long_url must be a valid http or https URL")
+        return value
+
+# Client receives (automatic from Pydantic):
+{
+  "detail": [
+    {
+      "loc": ["body", "long_url"],
+      "msg": "long_url must be a valid http or https URL",
+      "type": "value_error"
+    }
+  ]
+}
+```
+
+**Example 3: Permission Denied (403) - For Future Team Feature**
+```python
+# In route handler or service:
+if user_role != Role.ADMIN:
+    raise HTTPException(status_code=403, detail="Only admins can delete teams")
+
+# Client receives:
+{
+  "detail": "Only admins can delete teams"
+}
+```
+
+**Example 4: Generic Server Error (500)**
+```python
+# NEVER manually raise 500 errors with HTTPException
+# Let unhandled exceptions bubble up, they will be caught by global exception handler
+# Global handler returns:
+{
+  "error": "Internal Server Error"
+}
+# (In development/staging, includes "details" field with stack trace)
+```
+
+#### PROHIBITED ERROR PATTERNS (Never Do These)
+
+❌ **WRONG: Custom JSONResponse**
+```python
+# DO NOT DO THIS
+from fastapi.responses import JSONResponse
+return JSONResponse(status_code=400, content={
+    "status": "error",
+    "code": "VALIDATION_ERROR",
+    "message": "Team name is required"
+})
+```
+
+❌ **WRONG: Custom Exception Class**
+```python
+# DO NOT DO THIS
+class TeamException(Exception):
+    pass
+
+raise TeamException("Team not found")
+```
+
+❌ **WRONG: Return Dict Instead of Raise**
+```python
+# DO NOT DO THIS
+def get_team(db_session, team_id):
+    team = db_session.get(Team, team_id)
+    if team is None:
+        return {"error": "Team not found", "code": 404}  # WRONG
+    return team
+```
+
+❌ **WRONG: Wrapping Detail in Nested Object**
+```python
+# DO NOT DO THIS
+raise HTTPException(
+    status_code=400,
+    detail={
+        "error": {
+            "code": "INVALID_ROLE",
+            "message": "Role must be admin, member, or viewer"
+        }
+    }
+)
+# This will nest the error oddly. HTTPException detail must be a string.
+```
+
+#### The Rule in One Sentence
+**When an error occurs, raise HTTPException with a string detail message. Nothing else. The global exception handler will format it correctly.**
 
 ### Dependency Injection
 - FastAPI uses `Depends()` for dependency injection
